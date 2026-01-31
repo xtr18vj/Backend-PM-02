@@ -1,3 +1,4 @@
+const userRoutes = require('./routes/userRoutes');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -49,6 +50,7 @@ app.use('/api/', generalLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/users', userRoutes);
 
 app.get('/health', (req, res) => {
   res.json({
