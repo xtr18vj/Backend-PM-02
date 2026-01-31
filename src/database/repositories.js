@@ -3,13 +3,13 @@ const { v4: uuidv4 } = require('uuid');
 
 class UserRepository {
 
-  static create(email, passwordHash) {
+  static create(email, passwordHash, name = null) {
     const id = uuidv4();
     const stmt = dbWrapper.prepare(`
-      INSERT INTO users (id, email, password_hash)
-      VALUES (?, ?, ?)
+      INSERT INTO users (id, email, password_hash, name)
+      VALUES (?, ?, ?, ?)
     `);
-    stmt.run(id, email.toLowerCase(), passwordHash);
+    stmt.run(id, email.toLowerCase(), passwordHash, name);
     return this.findById(id);
   }
 
@@ -21,6 +21,27 @@ class UserRepository {
   static findByEmail(email) {
     const stmt = dbWrapper.prepare('SELECT * FROM users WHERE email = ?');
     return stmt.get(email.toLowerCase());
+  }
+
+  static findAll(options = {}) {
+    const { limit = 50, offset = 0, status = null, role = null } = options;
+    let query = 'SELECT id, email, name, role, status, profile_photo, phone, bio, is_verified, last_login, created_at, updated_at FROM users WHERE 1=1';
+    const params = [];
+    
+    if (status) {
+      query += ' AND status = ?';
+      params.push(status);
+    }
+    if (role) {
+      query += ' AND role = ?';
+      params.push(role);
+    }
+    
+    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+    
+    const stmt = dbWrapper.prepare(query);
+    return stmt.all(...params);
   }
 
   static verify(userId) {
@@ -39,9 +60,73 @@ class UserRepository {
     return stmt.run(passwordHash, userId);
   }
 
+  static updateProfile(userId, fields) {
+    const allowedFields = ['name', 'profile_photo', 'phone', 'bio'];
+    const updates = [];
+    const values = [];
+    
+    for (const [key, value] of Object.entries(fields)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        updates.push(`${key} = ?`);
+        values.push(value);
+      }
+    }
+    
+    if (updates.length === 0) return null;
+    
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(userId);
+    
+    const stmt = dbWrapper.prepare(`
+      UPDATE users SET ${updates.join(', ')} WHERE id = ?
+    `);
+    stmt.run(...values);
+    return this.findById(userId);
+  }
+
+  static adminUpdate(userId, fields) {
+    const allowedFields = ['name', 'email', 'role', 'status', 'profile_photo', 'phone', 'bio', 'is_verified'];
+    const updates = [];
+    const values = [];
+    
+    for (const [key, value] of Object.entries(fields)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        updates.push(`${key} = ?`);
+        values.push(key === 'email' ? value.toLowerCase() : value);
+      }
+    }
+    
+    if (updates.length === 0) return null;
+    
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(userId);
+    
+    const stmt = dbWrapper.prepare(`
+      UPDATE users SET ${updates.join(', ')} WHERE id = ?
+    `);
+    stmt.run(...values);
+    return this.findById(userId);
+  }
+
+  static updateLastLogin(userId) {
+    const stmt = dbWrapper.prepare(`
+      UPDATE users SET last_login = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+    return stmt.run(userId);
+  }
+
   static delete(userId) {
     const stmt = dbWrapper.prepare('DELETE FROM users WHERE id = ?');
     return stmt.run(userId);
+  }
+
+  static getPublicProfile(userId) {
+    const stmt = dbWrapper.prepare(`
+      SELECT id, name, profile_photo, bio, created_at 
+      FROM users WHERE id = ? AND status = 'active'
+    `);
+    return stmt.get(userId);
   }
 }
 

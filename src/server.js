@@ -1,4 +1,3 @@
-const userRoutes = require('./routes/userRoutes');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const config = require('./config');
 const migrate = require('./database/migrate');
 const authRoutes = require('./routes/auth');
+const profileRoutes = require('./routes/profile');
 
 const app = express();
 
@@ -50,7 +50,6 @@ app.use('/api/', generalLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
-app.use('/api/users', userRoutes);
 
 app.get('/health', (req, res) => {
   res.json({
@@ -61,6 +60,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', profileRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -96,6 +96,8 @@ async function startServer() {
       console.log(`📦 Database: ${config.database.path}`);
       console.log('========================================\n');
       console.log('Available endpoints:');
+      console.log('');
+      console.log('Auth Endpoints:');
       console.log('  POST /api/auth/register       - Register new user');
       console.log('  GET  /api/auth/verify-email   - Verify email');
       console.log('  POST /api/auth/login          - Login');
@@ -106,6 +108,17 @@ async function startServer() {
       console.log('  POST /api/auth/reset-password - Reset password');
       console.log('  GET  /api/auth/me             - Get current user');
       console.log('  POST /api/auth/resend-verification - Resend email');
+      console.log('');
+      console.log('User/Profile Endpoints:');
+      console.log('  GET  /api/users/profile       - Get own profile');
+      console.log('  PUT  /api/users/profile       - Update own profile');
+      console.log('  GET  /api/users/profile/:id   - Get public profile');
+      console.log('');
+      console.log('Admin Endpoints:');
+      console.log('  GET  /api/users/admin/users   - List all users');
+      console.log('  GET  /api/users/admin/users/:id - Get user details');
+      console.log('  PUT  /api/users/admin/users/:id - Update user (admin)');
+      console.log('  DELETE /api/users/admin/users/:id - Delete user');
       console.log('========================================\n');
     });
   } catch (error) {

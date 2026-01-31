@@ -11,7 +11,14 @@ async function migrate() {
       id TEXT PRIMARY KEY,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      name TEXT,
+      role TEXT DEFAULT 'user' CHECK(role IN ('user', 'admin', 'moderator')),
+      status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive', 'suspended', 'pending')),
+      profile_photo TEXT,
+      phone TEXT,
+      bio TEXT,
       is_verified INTEGER DEFAULT 0,
+      last_login TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
