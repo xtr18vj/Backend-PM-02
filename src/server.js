@@ -8,6 +8,12 @@ const migrate = require('./database/migrate');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 
+
+const organizationRoutes = require('./routes/organization.routes');
+const teamRoutes = require('./routes/team.routes');
+/////////////
+
+
 const app = express();
 
 app.use(helmet());
@@ -21,6 +27,15 @@ app.use(cors({
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+
+
+app.use('/api/auth', authRoutes);
+app.use('/api/users', profileRoutes);
+
+app.use('/api', organizationRoutes);
+app.use('/api', teamRoutes);
+
 
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
@@ -46,11 +61,19 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use('/api/', generalLimiter);
+
+
+
+
+
+app.use('/api', generalLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 
+
+
+/*
 app.get('/health', (req, res) => {
   res.json({
     success: true,
@@ -59,8 +82,21 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/users', profileRoutes);
+*/
+
+app.get('/health', (req, res) => {
+  console.log("✅ /health route was called");
+  res.json({
+    success: true,
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+
+
+
+
 
 app.use((req, res) => {
   res.status(404).json({

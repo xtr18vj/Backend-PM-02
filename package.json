@@ -11,18 +11,31 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-rate-limit": "^7.1.5",
-    "helmet": "^7.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "sql.js": "^1.9.0",
-    "uuid": "^9.0.1",
+    "express": "^4.22.1",
+    "express-rate-limit": "^7.5.1",
     "express-validator": "^7.0.1",
-    "nodemailer": "^6.9.7"
+    "helmet": "^7.2.0",
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.7",
+    "pg": "^8.18.0",
+    "sql.js": "^1.9.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xtr18vj/Backend-PM-02.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xtr18vj/Backend-PM-02/issues"
+  },
+  "homepage": "https://github.com/xtr18vj/Backend-PM-02#readme"
 }

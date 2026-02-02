@@ -80,6 +80,47 @@ async function migrate() {
     CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token_hash ON password_reset_tokens(token_hash)
   `);
   console.log('✅ Indexes created');
+  
+
+
+
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS organizations (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  console.log('✅ Organizations table created');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS teams (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      org_id TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
+    )
+  `);
+  console.log('✅ Teams table created');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS organization_users (
+      id TEXT PRIMARY KEY,
+      org_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      role_in_org TEXT,
+      FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+  console.log('✅ Organization_Users table created');
+
+
+  
+  
+
+
 
   saveDatabase();
   console.log('\n🎉 Migration completed successfully!');
