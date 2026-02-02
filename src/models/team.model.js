@@ -1,19 +1,34 @@
-const db = require("../../db");
+const { TeamRepository } = require('../database/repositories');
 
-const createTeam = async (team) => {
-  const result = await db.query(
-    "INSERT INTO teams (id, name, org_id) VALUES ($1, $2, $3) RETURNING *",
-    [team.id, team.name, team.org_id]
-  );
-  return result.rows[0];
+const createTeam = (name, orgId) => {
+  return TeamRepository.create(name, orgId);
 };
 
-const getTeamsByOrg = async (orgId) => {
-  const result = await db.query(
-    "SELECT * FROM teams WHERE org_id = $1",
-    [orgId]
-  );
-  return result.rows;
+const getTeamsByOrg = (orgId) => {
+  return TeamRepository.findByOrgId(orgId);
 };
 
-module.exports = { createTeam, getTeamsByOrg };
+const getTeamById = (id) => {
+  return TeamRepository.findById(id);
+};
+
+const getAllTeams = () => {
+  return TeamRepository.findAll();
+};
+
+const updateTeam = (id, name) => {
+  return TeamRepository.update(id, name);
+};
+
+const deleteTeam = (id) => {
+  return TeamRepository.delete(id);
+};
+
+module.exports = { 
+  createTeam, 
+  getTeamsByOrg, 
+  getTeamById,
+  getAllTeams,
+  updateTeam,
+  deleteTeam,
+};

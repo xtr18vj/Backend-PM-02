@@ -244,9 +244,214 @@ class PasswordResetTokenRepository {
   }
 }
 
+class OrganizationRepository {
+  static create(name) {
+    const id = uuidv4();
+    const stmt = dbWrapper.prepare(`
+      INSERT INTO organizations (id, name)
+      VALUES (?, ?)
+    `);
+    stmt.run(id, name);
+    return this.findById(id);
+  }
+
+  static findById(id) {
+    const stmt = dbWrapper.prepare('SELECT * FROM organizations WHERE id = ?');
+    return stmt.get(id);
+  }
+
+  static findAll() {
+    const stmt = dbWrapper.prepare('SELECT * FROM organizations ORDER BY created_at DESC');
+    return stmt.all();
+  }
+
+  static update(id, name) {
+    const stmt = dbWrapper.prepare(`
+      UPDATE organizations SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
+    `);
+    stmt.run(name, id);
+    return this.findById(id);
+  }
+
+  static delete(id) {
+    const stmt = dbWrapper.prepare('DELETE FROM organizations WHERE id = ?');
+    return stmt.run(id);
+  }
+}
+
+class TeamRepository {
+  static create(name, orgId) {
+    const id = uuidv4();
+    const stmt = dbWrapper.prepare(`
+      INSERT INTO teams (id, name, org_id)
+      VALUES (?, ?, ?)
+    `);
+    stmt.run(id, name, orgId);
+    return this.findById(id);
+  }
+
+  static findById(id) {
+    const stmt = dbWrapper.prepare('SELECT * FROM teams WHERE id = ?');
+    return stmt.get(id);
+  }
+
+  static findByOrgId(orgId) {
+    const stmt = dbWrapper.prepare('SELECT * FROM teams WHERE org_id = ? ORDER BY created_at DESC');
+    return stmt.all(orgId);
+  }
+
+  static findAll() {
+    const stmt = dbWrapper.prepare('SELECT * FROM teams ORDER BY created_at DESC');
+    return stmt.all();
+  }
+
+  static update(id, name) {
+    const stmt = dbWrapper.prepare(`
+      UPDATE teams SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
+    `);
+    stmt.run(name, id);
+    return this.findById(id);
+  }
+
+  static delete(id) {
+    const stmt = dbWrapper.prepare('DELETE FROM teams WHERE id = ?');
+    return stmt.run(id);
+  }
+}
+
+class OrganizationUserRepository {
+  static create(orgId, userId, roleInOrg = 'member') {
+    const id = uuidv4();
+    const existing = this.findByOrgAndUser(orgId, userId);
+    if (existing) return existing;
+    
+    const stmt = dbWrapper.prepare(`
+      INSERT INTO organization_users (id, org_id, user_id, role_in_org)
+      VALUES (?, ?, ?, ?)
+    `);
+    stmt.run(id, orgId, userId, roleInOrg);
+    return this.findById(id);
+  }
+
+  static findById(id) {
+    const stmt = dbWrapper.prepare('SELECT * FROM organization_users WHERE id = ?');
+    return stmt.get(id);
+  }
+
+  static findByOrgId(orgId) {
+    const stmt = dbWrapper.prepare(`
+      SELECT ou.*, u.email, u.name as user_name 
+      FROM organization_users ou 
+      JOIN users u ON ou.user_id = u.id 
+      WHERE ou.org_id = ?
+    `);
+    return stmt.all(orgId);
+  }
+
+  static findByUserId(userId) {
+    const stmt = dbWrapper.prepare(`
+      SELECT ou.*, o.name as org_name 
+      FROM organization_users ou 
+      JOIN organizations o ON ou.org_id = o.id 
+      WHERE ou.user_id = ?
+    `);
+    return stmt.all(userId);
+  }
+
+  static findByOrgAndUser(orgId, userId) {
+    const stmt = dbWrapper.prepare('SELECT * FROM organization_users WHERE org_id = ? AND user_id = ?');
+    return stmt.get(orgId, userId);
+  }
+
+  static updateRole(id, roleInOrg) {
+    const stmt = dbWrapper.prepare(`
+      UPDATE organization_users SET role_in_org = ? WHERE id = ?
+    `);
+    stmt.run(roleInOrg, id);
+    return this.findById(id);
+  }
+
+  static delete(id) {
+    const stmt = dbWrapper.prepare('DELETE FROM organization_users WHERE id = ?');
+    return stmt.run(id);
+  }
+
+  static removeUserFromOrg(orgId, userId) {
+    const stmt = dbWrapper.prepare('DELETE FROM organization_users WHERE org_id = ? AND user_id = ?');
+    return stmt.run(orgId, userId);
+  }
+}
+
+class TeamUserRepository {
+  static create(teamId, userId, roleInTeam = 'member') {
+    const id = uuidv4();
+    const existing = this.findByTeamAndUser(teamId, userId);
+    if (existing) return existing;
+    
+    const stmt = dbWrapper.prepare(`
+      INSERT INTO team_users (id, team_id, user_id, role_in_team)
+      VALUES (?, ?, ?, ?)
+    `);
+    stmt.run(id, teamId, userId, roleInTeam);
+    return this.findById(id);
+  }
+
+  static findById(id) {
+    const stmt = dbWrapper.prepare('SELECT * FROM team_users WHERE id = ?');
+    return stmt.get(id);
+  }
+
+  static findByTeamId(teamId) {
+    const stmt = dbWrapper.prepare(`
+      SELECT tu.*, u.email, u.name as user_name 
+      FROM team_users tu 
+      JOIN users u ON tu.user_id = u.id 
+      WHERE tu.team_id = ?
+    `);
+    return stmt.all(teamId);
+  }
+
+  static findByUserId(userId) {
+    const stmt = dbWrapper.prepare(`
+      SELECT tu.*, t.name as team_name, t.org_id 
+      FROM team_users tu 
+      JOIN teams t ON tu.team_id = t.id 
+      WHERE tu.user_id = ?
+    `);
+    return stmt.all(userId);
+  }
+
+  static findByTeamAndUser(teamId, userId) {
+    const stmt = dbWrapper.prepare('SELECT * FROM team_users WHERE team_id = ? AND user_id = ?');
+    return stmt.get(teamId, userId);
+  }
+
+  static updateRole(id, roleInTeam) {
+    const stmt = dbWrapper.prepare(`
+      UPDATE team_users SET role_in_team = ? WHERE id = ?
+    `);
+    stmt.run(roleInTeam, id);
+    return this.findById(id);
+  }
+
+  static delete(id) {
+    const stmt = dbWrapper.prepare('DELETE FROM team_users WHERE id = ?');
+    return stmt.run(id);
+  }
+
+  static removeUserFromTeam(teamId, userId) {
+    const stmt = dbWrapper.prepare('DELETE FROM team_users WHERE team_id = ? AND user_id = ?');
+    return stmt.run(teamId, userId);
+  }
+}
+
 module.exports = {
   UserRepository,
   RefreshTokenRepository,
   VerificationTokenRepository,
   PasswordResetTokenRepository,
+  OrganizationRepository,
+  TeamRepository,
+  OrganizationUserRepository,
+  TeamUserRepository,
 };

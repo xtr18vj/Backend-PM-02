@@ -84,11 +84,13 @@ async function migrate() {
 
 
 
-    db.exec(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS organizations (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      description TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
   console.log('✅ Organizations table created');
@@ -98,7 +100,9 @@ async function migrate() {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       org_id TEXT NOT NULL,
+      description TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
     )
   `);
@@ -109,12 +113,45 @@ async function migrate() {
       id TEXT PRIMARY KEY,
       org_id TEXT NOT NULL,
       user_id TEXT NOT NULL,
-      role_in_org TEXT,
+      role_in_org TEXT DEFAULT 'member' CHECK(role_in_org IN ('owner', 'admin', 'member')),
+      joined_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(org_id, user_id)
     )
   `);
   console.log('✅ Organization_Users table created');
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS team_users (
+      id TEXT PRIMARY KEY,
+      team_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      role_in_team TEXT DEFAULT 'member' CHECK(role_in_team IN ('lead', 'member')),
+      joined_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(team_id, user_id)
+    )
+  `);
+  console.log('✅ Team_Users table created');
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_teams_org_id ON teams(org_id)
+  `);
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_organization_users_org_id ON organization_users(org_id)
+  `);
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_organization_users_user_id ON organization_users(user_id)
+  `);
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_team_users_team_id ON team_users(team_id)
+  `);
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_team_users_user_id ON team_users(user_id)
+  `);
+  console.log('✅ Organization/Team indexes created');
 
 
   

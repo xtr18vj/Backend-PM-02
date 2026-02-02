@@ -1,19 +1,34 @@
-const db = require("../../db");
+const { OrganizationUserRepository } = require('../database/repositories');
 
-const addUserToOrganization = async (mapping) => {
-  const result = await db.query(
-    "INSERT INTO organization_users (id, org_id, user_id, role_in_org) VALUES ($1, $2, $3, $4) RETURNING *",
-    [mapping.id, mapping.org_id, mapping.user_id, mapping.role_in_org]
-  );
-  return result.rows[0];
+const addUserToOrganization = (orgId, userId, roleInOrg = 'member') => {
+  return OrganizationUserRepository.create(orgId, userId, roleInOrg);
 };
 
-const getUsersInOrganization = async (orgId) => {
-  const result = await db.query(
-    "SELECT * FROM organization_users WHERE org_id = $1",
-    [orgId]
-  );
-  return result.rows;
+const getUsersInOrganization = (orgId) => {
+  return OrganizationUserRepository.findByOrgId(orgId);
 };
 
-module.exports = { addUserToOrganization, getUsersInOrganization };
+const getOrganizationsForUser = (userId) => {
+  return OrganizationUserRepository.findByUserId(userId);
+};
+
+const getUserOrgMapping = (orgId, userId) => {
+  return OrganizationUserRepository.findByOrgAndUser(orgId, userId);
+};
+
+const updateUserRoleInOrg = (id, roleInOrg) => {
+  return OrganizationUserRepository.updateRole(id, roleInOrg);
+};
+
+const removeUserFromOrganization = (orgId, userId) => {
+  return OrganizationUserRepository.removeUserFromOrg(orgId, userId);
+};
+
+module.exports = { 
+  addUserToOrganization, 
+  getUsersInOrganization,
+  getOrganizationsForUser,
+  getUserOrgMapping,
+  updateUserRoleInOrg,
+  removeUserFromOrganization,
+};

@@ -1,16 +1,29 @@
-const db = require("../../db");
+const { OrganizationRepository } = require('../database/repositories');
 
-const createOrganization = async (org) => {
-  const result = await db.query(
-    "INSERT INTO organizations (id, name) VALUES ($1, $2) RETURNING *",
-    [org.id, org.name]
-  );
-  return result.rows[0];
+const createOrganization = (name) => {
+  return OrganizationRepository.create(name);
 };
 
-const getOrganizations = async () => {
-  const result = await db.query("SELECT * FROM organizations");
-  return result.rows;
+const getOrganizations = () => {
+  return OrganizationRepository.findAll();
 };
 
-module.exports = { createOrganization, getOrganizations };
+const getOrganizationById = (id) => {
+  return OrganizationRepository.findById(id);
+};
+
+const updateOrganization = (id, name) => {
+  return OrganizationRepository.update(id, name);
+};
+
+const deleteOrganization = (id) => {
+  return OrganizationRepository.delete(id);
+};
+
+module.exports = { 
+  createOrganization, 
+  getOrganizations, 
+  getOrganizationById,
+  updateOrganization,
+  deleteOrganization,
+};
