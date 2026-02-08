@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -28,18 +28,9 @@ app.use(cors({
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-
-
-app.use('/api/auth', authRoutes);
-app.use('/api/users', profileRoutes);
-
-app.use('/api', organizationRoutes);
-app.use('/api', teamRoutes);
-
-
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100, 
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: {
     success: false,
     message: 'Too many requests, please try again later.',
@@ -50,8 +41,8 @@ const generalLimiter = rateLimit({
 });
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 10, 
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   message: {
     success: false,
     message: 'Too many authentication attempts, please try again later.',
@@ -61,17 +52,16 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-
-
-
-
-
 app.use('/api', generalLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 
+app.use('/api/auth', authRoutes);
+app.use('/api/users', profileRoutes);
 
+app.use('/api', organizationRoutes);
+app.use('/api', teamRoutes);
 
 /*
 app.get('/health', (req, res) => {
@@ -85,7 +75,7 @@ app.get('/health', (req, res) => {
 */
 
 app.get('/health', (req, res) => {
-  console.log("✅ /health route was called");
+  console.log("OK /health route was called");
   res.json({
     success: true,
     message: 'Server is running',
@@ -125,11 +115,11 @@ async function startServer() {
     const PORT = config.port;
     app.listen(PORT, () => {
       console.log('\n========================================');
-      console.log('🔐 Authentication Server Started');
+      console.log('Authentication Server Started');
       console.log('========================================');
-      console.log(`📍 Server running on port ${PORT}`);
-      console.log(`🌍 Environment: ${config.nodeEnv}`);
-      console.log(`📦 Database: ${config.database.path}`);
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Environment: ${config.nodeEnv}`);
+      console.log(`Database: ${config.database.path}`);
       console.log('========================================\n');
       console.log('Available endpoints:');
       console.log('');
@@ -166,3 +156,4 @@ async function startServer() {
 startServer();
 
 module.exports = app;
+
